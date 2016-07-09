@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env node
+
+var env = process.env || process.ENV
+var fs = require('fs')
+var path = require('path')
+var filepath = env.TM_FILEPATH
+
+function readSupportFile(filename) {
+  return String(fs.readFileSync(path.join(env.TM_BUNDLE_SUPPORT, filename)))
+}
+
+var templates = {
+  layout: readSupportFile('layout.html'),
+  style: readSupportFile('style.css'),
+  script: readSupportFile('script.js'),
+  linter: readSupportFile('linter.html'),
+  hint: readSupportFile('hint.html'),
+  rule: readSupportFile('rule.html'),
+  code: readSupportFile('code.html')
+}
+
+var linterFileNames = fs.readdirSync(path.join(env.TM_BUNDLE_SUPPORT, 'linters'))
+
+if (env.TM_LINTER_USE_ONLY) {
+  only = env.TM_LINTER_USE_ONLY.split(',')
+  linterFileNames = linterFileNames.filter(function (filename) {
+    var linterName = filename.match(/\w+/)[0]
+    return only.indexOf(linterName) &gt;= 0
+  })
+}
+
+linters = linterFileNames.map(function (linter) {
+  return require(path.join(env.TM_BUNDLE_SUPPORT, 'linters', linter))
+})
+
+function eashSeries(arr, fn, callback) {
+  current = 0
+  
+  var callNext = function () {
+    fn(arr[current], function (err) {
+      if (err) {
+        return callback(err)
+      }
+      
+      if (current === arr.length - 1) {
+        return callback()
+      }
+      
+      current++
+      callNext()
+    })
+  }
+  
+  callNext()
+}
+
+var results = []
+var content = ''
+var hintIndex = 0
+
+eashSeries(linters, function (linter, callback) {
+  linter(filepath, function (err, result) {
+    if (err) {
+      return callback(err)
+    }
+    
+    if (result) {
+      var hints = result.hints
+    
+      if (hints &amp;&amp; hints.length) {
+        var hintsHtml = hints.map(function (hint) {
+          hintIndex++
+        
+          return templates.hint.replace('{{message}}', hint.message)
+                               .replace('{{code}}', hint.code ? templates.code.replace('{{code}}', hint.code) : '')
+                               .replace('{{rule}}', hint.rule ? templates.rule.replace('{{rule}}', hint.rule) : '')
+                               .replace(/\{{line\}\}/g, hint.line)
+                               .replace(/\{{column\}\}/g, hint.column)
+                               .replace('{{file}}', filepath)
+                               .replace('{{index}}', hintIndex)
+        }).join('')
+      
+        content += templates.linter.replace('{{linter}}', result.name)
+                                   .replace('{{hints}}', hintsHtml)
+      }
+    }
+    
+    callback()
+  })
+}, function (err) {
+  if (err) {
+    return console.log('&lt;pre&gt;' + err + '&lt;/pre&gt;')
+  }
+
+  if (content) {
+    var html = templates.layout.replace('{{content}}', content)
+                               .replace('{{style}}', templates.style)
+                               .replace('{{script}}', templates.script)
+
+    console.log(html)
+  }
+})
+</string>
+	<key>input</key>
+	<string>document</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>name</key>
+	<string>Lint</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>html</string>
+	<key>outputLocation</key>
+	<string>newWindow</string>
+	<key>scope</key>
+	<string>source.js, source.js.jsx, source.coffee</string>
+	<key>semanticClass</key>
+	<string>callback.document.did-save</string>
+	<key>uuid</key>
+	<string>7990451B-FE4A-4DF7-964C-AE6670471431</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

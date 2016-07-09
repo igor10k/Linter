@@ -1,0 +1,59 @@
+* {
+  margin: 0; padding: 0;
+}
+body {
+  font: 12px/1.3 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.container {
+  font: 12px/1.3 Menlo, monotype;
+}
+.linter h2 {
+  padding: 10px;
+  background: #f2f2f2;
+  font-weight: 700; font-size: 14px;
+  text-align: center;
+}
+.hint {
+  display: block;
+  position: relative;
+  padding: 10px 10px 10px 70px;
+  border-bottom: solid 1px #f2f2f2;
+  text-decoration: none;
+  color: #333;
+}
+.hint:hover {
+  background: #fafafa;
+}
+.hint .message {
+  font-size: 14px;
+  color: #4a4a4a;
+}
+.hint .position {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 50px;
+  padding: 10px 10px 0 0;
+  border-right: solid 1px #f2f2f2;
+  font-weight: 700;
+  text-align: right;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.hint .position .index {
+  position: absolute;
+  bottom: 3px; left: 3px;
+  font-weight: 400; font-size: 11px;
+  color: #999;
+}
+.hint pre {
+  margin-top: 5px;
+  padding: 5px;
+  border: 1px solid #EEE;
+  background: #f8f8f8;
+  font: 12px/1.3 Menlo, monotype;
+}
+.hint .rule {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #777;
+}
